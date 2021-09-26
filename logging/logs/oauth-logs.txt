@@ -1,0 +1,2 @@
+{"severity":"info","timestamp":"2021-09-26T14:48:59.885Z","caller":"/go/pkg/mod/github.com/shawnzxx/bookstore_utils-go@v0.1.2/app_logger/app_logger.go:45","message":"users api's hostname: d8beca68a049"}
+{"severity":"info","timestamp":"2021-09-26T14:48:59.887Z","caller":"/go/pkg/mod/github.com/shawnzxx/bookstore_utils-go@v0.1.2/app_logger/app_logger.go:45","message":"bookstore_oauth-api running on dev environment, ip is 172.24.0.8, port is 8080"}

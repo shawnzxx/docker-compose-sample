@@ -1,0 +1,69 @@
+version: '3.9'
+services:
+  database:
+    image: mysql:5.7
+    #Specify a custom container name, rather than a generated default name.
+    container_name: "mysql"
+    restart: always
+    environment:
+      # Here indicate your started db name, if you don't know which db to start you can comment this line
+      MYSQL_DATABASE: 'users_db'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'SA'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'Passw0rd123!'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'Passw0rd123!'
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    # Opens port 3306 on the container, so inside container other service can connect to it
+    expose:
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - /c/mysql:/var/lib/mysql
+    networks:
+      - my-network
+    
+  redis:
+    image: redis
+    #Specify a custom container name, rather than a generated default name.
+    container_name: "redis"
+    ports:
+      - 6379:6379
+    expose:
+        - 9042
+    volumes:
+      - /c/redis:/data
+      - /c/redis-dump:/var/lib/redis
+    networks:
+      - my-network
+
+  cassandra:
+    image: "cassandra"
+    restart: always
+    hostname: cassandra
+    #Specify a custom container name, rather than a generated default name.
+    container_name: "cassandra"
+    ports:
+      - "9042:9042"     # Expose native binary CQL port for your apps
+    # use - way writing enviroment value
+    environment:
+      - MAX_HEAP_SIZE=256M
+      - HEAP_NEWSIZE=128M
+      # The default value is auto, which will set the listen_address option in cassandra.yaml to the IP address of the container as it starts.
+      # This default should work in most use cases.
+      - CASSANDRA_LISTEN_ADDRESS=auto
+    # This is the local:container path that will persist data for cassandra
+    volumes:
+      - /c/cassandra:/var/lib/cassandra
+    networks:
+      - my-network
+
+# Define network with custom name as "my-network"
+# So that another compose can communicate dbs using the same network
+networks:
+  my-network:
+    name: my-network
+    driver: bridge

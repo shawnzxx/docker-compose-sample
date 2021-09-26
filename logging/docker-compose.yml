@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  fluentd:
+    # Use our own custom dockerfile to build fluentd image
+    build: ./fluentd
+    image: fluentd:latest
+    container_name: "fluentd"
+    # Here we define read source from ./logs, change different location based on your project preference
+    # Configure inside the ./fluentd/conf/fluent.conf
+    volumes:
+      - ./logs:/app/logs
+      - ./fluentd/conf/fluent.conf:/fluentd/etc/fluent.conf
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - my-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
+    container_name: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+    expose:
+      - "9200"
+    ports:
+      - "9200:9200"
+    networks:
+      - my-network
+  
+  # First time open console after docker-compose up
+  # http://localhost:5601/app/management/kibana/indexPatterns
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.13.1
+    container_name: kibana
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
+    networks:
+      - my-network
+
+# join a pre-existing network, use the external option
+networks:
+  my-network:
+    name: my-network
+    external: true

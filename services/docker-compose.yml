@@ -1,0 +1,70 @@
+version: '3.9'
+services:
+  users-api:
+    # dockerfile location, prefix with C:
+    build: /_projects/personal/golang/github.com/shawnzxx/bookstore_users-api
+    # image name we built
+    image: bookstore_users-api:latest
+    container_name: "users-api"
+    depends_on:
+      - oauth-api
+    links:
+      - oauth-api
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: users-api
+    #暴露端口，但不映射到宿主机，只被内部其他服务连接访问
+    expose:
+      - "8081"
+    #映射端口信息,宿主端口：容器端口 (即：HOST:CONTAINER) 的格式
+    ports:
+      - "8081:8081"
+        #define running on isolated backend network
+    # use environment section will auto replaced each of key's value using .env file which should placed inside the  same folder of docker-compose location
+    # when you deploy to k8s make sure all pods have this .env file
+    # you can run command "docker-compose config" to check if correct values were set
+#    environment:
+#      - MYSQL_USERS_USERNAME
+#      - MYSQL_USERS_PASSWORD
+#      - MYSQL_USERS_HOST
+#      - MYSQL_USERS_SCHEMA
+#      - ENV
+#      - PORT
+    # Or use env_file and point to the location of .env file
+    # you can run command "docker-compose config" to check if correct values were set
+    env_file:
+      - /_projects/personal/golang/github.com/shawnzxx/bookstore_users-api/.env
+    # here we mapped <log path on hosted> : <log path running inside container>
+    # so when container is running we can see realtime log from host machine
+    volumes:
+      - ../logging/logs/users-logs.txt:/app/logs/users-logs.txt
+    networks:
+      - my-network
+
+  oauth-api:
+    build: /_projects/personal/golang/github.com/shawnzxx/bookstore_oauth-api
+    image: bookstore_oauth-api:latest
+    container_name: "oauth-api"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: oauth-api
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    env_file:
+      - /_projects/personal/golang/github.com/shawnzxx/bookstore_oauth-api/.env
+    volumes:
+      - ../logging/logs/oauth-logs.txt:/app/logs/oauth-logs.txt
+    networks:
+      - my-network
+
+# join a pre-existing network, use the external option
+networks:
+  my-network:
+    name: my-network
+    external: true
